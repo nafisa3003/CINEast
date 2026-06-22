@@ -7,8 +7,9 @@
 
 <nav class="cineast-nav">
   <a class="nav-logo" href="MovieServlet">
-    <span class="nav-brand">CIN<span class="accent">É</span>ast</span>
+    <span class="nav-brand">CIN<span class="accent">É</span><span class="logo-lowercase">ast</span></span>
   </a>
+</nav>
   <form class="nav-search" action="MovieServlet" method="GET">
     <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
@@ -51,8 +52,14 @@
 }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
 .nav-logo-img { height:32px; width:auto; }
-.nav-brand { font-family:'Bebas Neue',sans-serif; font-size:22px; letter-spacing:3px; color:var(--text); }
+.nav-brand { font-family:'Bebas Neue',sans-serif; font-size:24px; letter-spacing:3px; color:var(--text); }
 .accent { color:var(--gold); }
+.logo-lowercase {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  text-transform: lowercase;
+  letter-spacing: 1px;
+}
 .nav-search { flex:1; max-width:480px; position:relative; }
 .search-icon { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:17px; height:17px; color:var(--muted); }
 .search-input {
