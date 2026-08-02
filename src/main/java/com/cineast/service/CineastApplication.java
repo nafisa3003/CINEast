@@ -1,4 +1,4 @@
-package com.cineast;
+package com.cineast.service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
