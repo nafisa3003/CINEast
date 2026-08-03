@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title th:text="${profile.username} + ' — CINÉast'">Profile — CINÉast</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/cineast.css">
+<style>
+.banner{position:relative;height:260px;overflow:hidden;background:linear-gradient(135deg,#0f1118,#1a1c25,#0D0E12)}
+.banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,rgba(229,169,60,.11),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(229,169,60,.06),transparent 50%)}
+.banner-pattern{position:absolute;inset:0;opacity:.04;background-image:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(229,169,60,1) 40px,rgba(229,169,60,1) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(229,169,60,1) 40px,rgba(229,169,60,1) 41px)}
+.profile-wrap{max-width:940px;margin:0 auto;padding:0 32px}
+.profile-card{position:relative;margin-top:-76px;z-index:2;display:flex;align-items:flex-end;gap:26px;padding-bottom:28px;flex-wrap:wrap}
+.p-avatar{width:136px;height:136px;border-radius:50%;background:linear-gradient(135deg,rgba(229,169,60,.25),rgba(229,169,60,.08));border:4px solid var(--bg);box-shadow:0 8px 32px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:54px;color:var(--gold);flex-shrink:0;overflow:hidden}
+.p-avatar img{width:100%;height:100%;object-fit:cover}
+.p-meta{flex:1;padding-bottom:8px;min-width:200px}
+.p-name{font-family:'Bebas Neue',sans-serif;font-size:38px;letter-spacing:2px;line-height:1;margin-bottom:8px}
+.p-bio{color:var(--muted);font-size:14px;line-height:1.7;max-width:480px;margin-bottom:10px}
+.join-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(229,169,60,.1);border:1px solid rgba(229,169,60,.2);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted)}
+.join-badge svg{width:12px;height:12px;color:var(--gold)}
+.p-actions{display:flex;gap:10px;margin-left:auto;align-self:flex-end;padding-bottom:8px}
+.btn-edit{padding:9px 20px;background:rgba(229,169,60,.1);border:1px solid rgba(229,169,60,.28);color:var(--gold);border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;text-decoration:none;transition:background .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-edit:hover{background:rgba(229,169,60,.2)}
+.btn-edit svg{width:13px;height:13px}
+.section-div{height:1px;background:linear-gradient(to right,rgba(229,169,60,.3),transparent);margin:0 0 32px}
+.profile-content{max-width:940px;margin:28px auto 80px;padding:0 32px}
+.p-section-title{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;margin-bottom:18px}
+.p-section-title .accent{color:var(--gold)}
+.review-list{display:flex;flex-direction:column;gap:12px}
+.review-card{background:var(--surface);backdrop-filter:blur(12px);border-radius:var(--radius);padding:20px 22px;border:1px solid rgba(255,255,255,.07);transition:border-color .2s}
+.review-card:hover{border-color:rgba(229,169,60,.2)}
+.rc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rc-date{color:var(--muted);font-size:12px}
+.rc-content{color:var(--muted);font-size:14px;line-height:1.7}
+.empty-state{text-align:center;padding:48px 32px;color:var(--muted);background:var(--surface);border-radius:12px;border:1px solid rgba(255,255,255,.07)}
+.empty-state h3{font-size:17px;font-weight:600;margin-bottom:8px;color:var(--text)}
+.empty-state a{color:var(--gold)}
+</style>
+</head>
+<body style="padding-top:66px">
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div th:if="${profile != null}">
+  <div class="banner"><div class="banner-pattern"></div></div>
+  <div class="profile-wrap">
+    <div class="profile-card">
+      <div class="p-avatar">
+        <img th:if="${profile.hasAvatar()}" th:src="${profile.avatarUrl}" th:alt="${profile.username}">
+        <span th:unless="${profile.hasAvatar()}" th:text="${profile.initial}"></span>
+      </div>
+      <div class="p-meta">
+        <h1 class="p-name" th:text="${profile.username}"></h1>
+        <p th:if="${!profile.bio.isEmpty()}" class="p-bio" th:text="${profile.bio}"></p>
+        <span class="join-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Member since <span th:text="${profile.joinYear}"></span>
+        </span>
+      </div>
+      <div class="p-actions">
+        <a href="/profile/settings" class="btn-edit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Edit Profile
+        </a>
+      </div>
+    </div>
+    <div class="section-div"></div>
+  </div>
+
+  <div class="profile-content">
+    <h2 class="p-section-title">My <span class="accent">Reviews</span></h2>
+    <div th:if="${#lists.isEmpty(myReviews)}" class="empty-state">
+      <h3>No reviews yet</h3>
+      <p>Start exploring films and share your thoughts. <a href="/">Browse movies →</a></p>
+    </div>
+    <div th:unless="${#lists.isEmpty(myReviews)}" class="review-list">
+      <div th:each="r : ${myReviews}" class="review-card">
+        <div class="rc-head">
+          <span style="font-size:13px;color:var(--gold);font-weight:600">Review</span>
+          <span class="rc-date" th:text="${r.formattedDate}"></span>
+        </div>
+        <p class="rc-content" th:text="${r.content}"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div th:unless="${profile != null}" style="text-align:center;padding:80px;color:var(--muted)">Profile not found.</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+<div th:replace="~{fragments :: navscript}"></div>
+<script>(function(){const n=document.querySelector(".cineast-nav");if(!n)return;const f=()=>window.scrollY>40?n.classList.add("scrolled"):n.classList.remove("scrolled");window.addEventListener("scroll",f,{passive:true});f();})();</script>
+</body></html>
