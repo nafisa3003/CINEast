@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Search — CINÉast</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/cineast.css">
+<style>
+.page-header{padding:40px 40px 0;margin-bottom:28px}
+.page-header h1{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:2px}
+.page-header h1 .accent{color:var(--gold)}
+.result-count{color:var(--muted);font-size:13px;margin-top:6px}
+.sort-bar{display:flex;gap:8px;margin:0 40px 24px;flex-wrap:wrap}
+.sort-pill{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);
+  text-decoration:none;transition:all .2s}
+.sort-pill:hover,.sort-pill.active{background:rgba(229,169,60,.12);border-color:rgba(229,169,60,.3);color:var(--gold)}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(154px,1fr));gap:18px;padding:0 40px 80px}
+.no-results{text-align:center;padding:80px 40px;color:var(--muted)}
+.no-results h2{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:8px;color:var(--text)}
+.no-results a{color:var(--gold)}
+</style>
+</head>
+<body style="padding-top:66px">
+<div th:replace="~{fragments :: navbar}"></div>
+
+<div class="page-header">
+  <h1>Results for <span class="accent" th:text="'&quot;' + ${query} + '&quot;'"></span></h1>
+  <p class="result-count" th:text="${results.size()} + ' movie' + (${results.size()} != 1 ? 's' : '') + ' found'"></p>
+</div>
+
+<div class="sort-bar" th:if="${not #lists.isEmpty(results)}">
+  <a th:href="@{/search(q=${query},sort='trending')}" th:classappend="${currentSort == 'trending'} ? ' active'" class="sort-pill">Trending</a>
+  <a th:href="@{/search(q=${query},sort='rating')}"   th:classappend="${currentSort == 'rating'} ? ' active'"   class="sort-pill">Top Rated</a>
+  <a th:href="@{/search(q=${query},sort='release_date')}" th:classappend="${currentSort == 'release_date'} ? ' active'" class="sort-pill">Newest</a>
+  <a th:href="@{/search(q=${query},sort='title')}"    th:classappend="${currentSort == 'title'} ? ' active'"    class="sort-pill">A–Z</a>
+</div>
+
+<div th:if="${#lists.isEmpty(results)}" class="no-results">
+  <h2>No results found</h2>
+  <p>Try a different search term or <a href="/">browse trending movies</a>.</p>
+</div>
+
+<div th:unless="${#lists.isEmpty(results)}" class="results-grid">
+  <a th:each="m : ${results}" th:href="@{/movie/{id}(id=${m.id})}" class="movie-card" style="flex:unset">
+    <img th:if="${m.hasPoster()}" th:src="${m.posterUrl}" th:alt="${m.title}" loading="lazy">
+    <div th:unless="${m.hasPoster()}" class="card-no-poster">No image</div>
+    <div class="card-overlay">
+      <div class="card-title" th:text="${m.title}"></div>
+      <div class="card-meta">
+        <span class="card-rating">★ <span th:text="${m.ratingFormatted}"></span></span>
+        <span class="card-year" th:text="${m.releaseYear}"></span>
+      </div>
+    </div>
+  </a>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+<div th:replace="~{fragments :: navscript}"></div>
+<script>(function(){const n=document.querySelector(".cineast-nav");if(!n)return;const f=()=>window.scrollY>40?n.classList.add("scrolled"):n.classList.remove("scrolled");window.addEventListener("scroll",f,{passive:true});f();})();</script>
+</body></html>
