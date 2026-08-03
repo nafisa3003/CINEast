@@ -7,37 +7,51 @@ _Note: This is our latest version v4, in future if we further develop this proje
 
 ## Screenshots
 
-<table>
-  <tr>
-    <td width="50%"><b>Sign Up</b><br><img src="docs/screenshots/signup.png" width="100%"></td>
-    <td width="50%"><b>Login</b><br><img src="docs/screenshots/login.png" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="50%"><b>Homepage — Hero</b><br><img src="docs/screenshots/homepage-hero.png" width="100%"></td>
-    <td width="50%"><b>Homepage — Row 1</b><br><img src="docs/screenshots/home-row1.png" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="50%"><b>Homepage — Row 2</b><br><img src="docs/screenshots/home-row2.png" width="100%"></td>
-    <td width="50%"><b>Footer</b><br><img src="docs/screenshots/footer.png" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="50%"><b>Movie Details</b><br><img src="docs/screenshots/movie-details.png" width="100%"></td>
-    <td width="50%"><b>Profile Dropdown</b><br><img src="docs/screenshots/profile-dropdown.png" width="100%"></td>
-  </tr>
-</table>
+### 🔑 Authentication
+#### Sign Up
+![Sign Up](docs/screenshots/signup.png)
 
-### User Profile & Settings
+#### Login
+![Login](docs/screenshots/login.png)
 
-<table>
-  <tr>
-    <td width="50%"><b>User Profile Page</b><br><img src="docs/screenshots/profile.png" width="100%"></td>
-    <td width="50%"><b>Profile Settings</b><br><img src="docs/screenshots/settings-profile.png" width="100%"></td>
-  </tr>
-  <tr>
-    <td width="50%"><b>Security Settings</b><br><img src="docs/screenshots/settings-security.png" width="100%"></td>
-    <td width="50%"><b>Account Settings</b><br><img src="docs/screenshots/settings-account.png" width="100%"></td>
-  </tr>
-</table>
+---
+
+### 🍿 Discovery & Home
+#### Homepage — Hero Section
+![Homepage Hero](docs/screenshots/homepage-hero.png)
+
+#### Homepage — Trending & Categories
+![Homepage Row 1](docs/screenshots/home-row1.png)
+
+#### Homepage — Additional Collections
+![Homepage Row 2](docs/screenshots/home-row2.png)
+
+#### Footer
+![Footer](docs/screenshots/footer.png)
+
+---
+
+### 🎬 Movie Details & User Profile
+#### Movie Details Page
+![Movie Details](docs/screenshots/movie-details.png)
+
+#### Profile Dropdown
+![Profile Dropdown](docs/screenshots/profile-dropdown.png)
+
+#### User Profile Page
+![Profile Page](docs/screenshots/profile.png)
+
+---
+
+### ⚙️ Settings
+#### Profile Settings
+![Profile Settings](docs/screenshots/settings-profile.png)
+
+#### Security Settings
+![Security Settings](docs/screenshots/settings-security.png)
+
+#### Account Settings
+![Account Settings](docs/screenshots/settings-account.png)
 
 ---
 
