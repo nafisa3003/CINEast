@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────────────────── -->
+<nav th:fragment="navbar" class="cineast-nav">
+
+  <a class="nav-logo" href="/">
+    <!-- Pure typography logo — no image needed -->
+    <span class="nav-brand">CIN<span class="e">É</span><span class="ast">ast</span><span class="nav-dot">.</span></span>
+  </a>
+
+  <form class="nav-search" action="/search" method="GET">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" name="q" placeholder="Search for a film…" class="search-input" autocomplete="off">
+  </form>
+
+  <div class="nav-right">
+    <!-- Authenticated -->
+    <div class="nav-profile" id="navProfile" sec:authorize="isAuthenticated()">
+      <button class="avatar-btn" onclick="toggleDd(event)" type="button" aria-expanded="false">
+        <div class="avatar-circle">
+          <span sec:authentication="name"
+                th:text="${#strings.substring(#authentication.name,0,1).toUpperCase()}">U</span>
+        </div>
+        <span class="avatar-name" sec:authentication="name"></span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </button>
+      <div class="dropdown" role="menu">
+        <div class="dd-header">
+          <div class="dd-name" sec:authentication="name"></div>
+        </div>
+        <a class="dd-item" href="/profile" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          My Profile
+        </a>
+        <a class="dd-item" href="/profile/settings" role="menuitem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+          </svg>
+          Settings
+        </a>
+        <div class="dd-divider"></div>
+        <form action="/logout" method="post" style="display:contents">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <button type="submit" class="dd-item danger" role="menuitem">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            Sign out
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Guest -->
+    <a href="/login" class="btn-signin" sec:authorize="!isAuthenticated()">Sign in</a>
+  </div>
+</nav>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────── -->
+<footer th:fragment="footer" class="cineast-footer">
+  <div class="footer-brand">CIN<span class="e">É</span>ast<span style="color:var(--gold)">.</span></div>
+  <p class="footer-copy">© 2025 CINÉast · Movie ratings &amp; reviews · Powered by TMDb</p>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/profile">Profile</a>
+    <a href="/profile/settings">Settings</a>
+  </div>
+</footer>
+
+<!-- ── Nav JS fragment ─────────────────────────────────────────────────── -->
+<script th:fragment="navscript">
+function toggleDd(e) {
+  e.stopPropagation();
+  const p = document.getElementById('navProfile');
+  const isOpen = p.classList.toggle('open');
+  p.querySelector('.avatar-btn').setAttribute('aria-expanded', isOpen);
+}
+document.addEventListener('click', function(e) {
+  const p = document.getElementById('navProfile');
+  if (p && !p.contains(e.target)) {
+    p.classList.remove('open');
+    const btn = p.querySelector('.avatar-btn');
+    if (btn) btn.setAttribute('aria-expanded', 'false');
+  }
+});
+</script>
+
+</body>
+</html>
