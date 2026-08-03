@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Settings — CINÉast</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/cineast.css">
+<style>
+.settings-page{max-width:780px;margin:0 auto;padding:44px 32px 80px}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:13px;margin-bottom:24px;transition:color .2s;text-decoration:none}
+.back-link:hover{color:var(--gold)}.back-link svg{width:14px;height:14px}
+.settings-header{margin-bottom:36px}
+.settings-header h1{font-family:'Bebas Neue',sans-serif;font-size:36px;letter-spacing:2px}
+.settings-header p{color:var(--muted);font-size:14px;margin-top:6px}
+.tabs{display:flex;gap:4px;margin-bottom:28px;background:rgba(255,255,255,.04);border-radius:var(--radius);padding:4px}
+.tab{flex:1;padding:10px;text-align:center;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .2s;border:none;background:none;font-family:'Inter',sans-serif}
+.tab.on{background:rgba(229,169,60,.12);color:var(--gold);border:1px solid rgba(229,169,60,.25)}
+.panel{display:none}.panel.on{display:block}
+.settings-card{background:var(--surface);backdrop-filter:blur(12px);border-radius:14px;padding:30px;border:1px solid rgba(255,255,255,.07);margin-bottom:18px}
+.settings-card h3{font-size:15px;font-weight:600;margin-bottom:4px}
+.card-desc{color:var(--muted);font-size:13px;margin-bottom:26px}
+.av-wrap{display:flex;align-items:center;gap:18px;margin-bottom:22px}
+.av-circle{width:78px;height:78px;border-radius:50%;background:linear-gradient(135deg,rgba(229,169,60,.25),rgba(229,169,60,.08));border:2px solid rgba(229,169,60,.3);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--gold);overflow:hidden;flex-shrink:0}
+.av-circle img{width:100%;height:100%;object-fit:cover}
+.av-hint{color:var(--muted);font-size:12px;line-height:1.6}
+.fg{display:flex;flex-direction:column;gap:7px;margin-bottom:18px}
+.fg label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.fg input,.fg textarea{width:100%;padding:12px 16px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;transition:border-color .2s;font-family:'Inter',sans-serif}
+.fg input:focus,.fg textarea:focus{border-color:var(--gold)}
+.fg textarea{resize:vertical;min-height:84px;line-height:1.6}
+.fg .hint{font-size:11px;color:var(--muted);margin-top:4px}
+.btn-save{padding:12px 26px;background:linear-gradient(135deg,#E5A93C,#c8891a);color:#0D0E12;border:none;border-radius:var(--radius);font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;box-shadow:0 4px 16px rgba(229,169,60,.25);transition:opacity .2s}
+.btn-save:hover{opacity:.9}
+.btn-danger{padding:12px 26px;background:rgba(232,112,112,.1);border:1px solid rgba(232,112,112,.3);color:#f08080;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:background .2s}
+.btn-danger:hover{background:rgba(232,112,112,.2)}
+.danger-zone{border-color:rgba(232,112,112,.2)}.danger-zone h3{color:#f08080}
+.info-row{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.info-row:last-child{border-bottom:none}
+.info-label{font-size:13px;color:var(--muted)}.info-value{font-size:13px;font-weight:500}
+.pw-hint{font-size:12px;margin-top:4px;transition:color .2s}
+</style>
+</head>
+<body style="padding-top:66px">
+<div th:replace="~{fragments :: navbar}"></div>
+<div class="settings-page">
+  <a class="back-link" href="/profile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>Back to profile</a>
+  <div class="settings-header">
+    <h1>Settings</h1>
+    <p>Manage your CINÉast account and preferences.</p>
+  </div>
+
+  <div th:if="${success}" class="flash-ok" style="margin-bottom:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg><span th:text="${success}"></span></div>
+  <div th:if="${error}"   class="flash-err" style="margin-bottom:20px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span th:text="${error}"></span></div>
+
+  <div class="tabs">
+    <button class="tab on" onclick="sw('profile',this)">Profile</button>
+    <button class="tab"    onclick="sw('security',this)">Security</button>
+    <button class="tab"    onclick="sw('account',this)">Account</button>
+  </div>
+
+  <!-- Profile panel -->
+  <div class="panel on" id="tab-profile">
+    <div class="settings-card">
+      <h3>Profile information</h3>
+      <p class="card-desc">Update your avatar and bio.</p>
+      <div th:if="${profile != null}">
+        <div class="av-wrap">
+          <div class="av-circle" id="avCircle">
+            <img th:if="${profile.hasAvatar()}" th:src="${profile.avatarUrl}" th:id="avImg" alt="">
+            <span th:unless="${profile.hasAvatar()}" th:text="${profile.initial}" id="avInit"></span>
+          </div>
+          <div class="av-hint"><strong style="color:var(--text)">Profile picture</strong><br>Paste an image URL below.</div>
+        </div>
+        <form action="/profile/update" method="post">
+          <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+          <div class="fg">
+            <label>Avatar URL</label>
+            <input type="url" name="avatarUrl" th:value="${profile.avatarUrl}" placeholder="https://example.com/photo.jpg" oninput="prevAv(this.value)">
+            <span class="hint">Link to any public image (JPG, PNG, WebP)</span>
+          </div>
+          <div class="fg">
+            <label>Bio</label>
+            <textarea name="bio" th:text="${profile.bio}" placeholder="Tell the community about your taste in film…"></textarea>
+          </div>
+          <button type="submit" class="btn-save">Save changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security panel -->
+  <div class="panel" id="tab-security">
+    <div class="settings-card">
+      <h3>Change password</h3>
+      <p class="card-desc">Use a strong password you don't use anywhere else.</p>
+      <form action="/profile/password" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <div class="fg"><label>Current password</label><input type="password" name="currentPassword" required placeholder="Your current password"></div>
+        <div class="fg"><label>New password</label><input type="password" name="newPassword" id="np" required placeholder="Min. 6 characters" oninput="chkPw()"></div>
+        <div class="fg"><label>Confirm new password</label><input type="password" name="confirmPassword" id="cp" required placeholder="Repeat new password" oninput="chkPw()"><span class="pw-hint" id="pwh"></span></div>
+        <button type="submit" class="btn-save">Update password</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Account panel -->
+  <div class="panel" id="tab-account">
+    <div class="settings-card" th:if="${profile != null}">
+      <h3>Account details</h3>
+      <p class="card-desc">Your account information (read-only).</p>
+      <div class="info-row"><span class="info-label">Username</span><span class="info-value" th:text="${profile.username}"></span></div>
+      <div class="info-row"><span class="info-label">Email</span><span class="info-value" th:text="${profile.email}"></span></div>
+      <div class="info-row"><span class="info-label">Member since</span><span class="info-value" th:text="${profile.joinYear}"></span></div>
+    </div>
+    <div class="settings-card danger-zone">
+      <h3>Sign out</h3>
+      <p class="card-desc">Sign out from this device.</p>
+      <form action="/logout" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <button type="submit" class="btn-danger">Sign out of CINÉast</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div th:replace="~{fragments :: footer}"></div>
+<div th:replace="~{fragments :: navscript}"></div>
+<script>
+function sw(id,btn){document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));document.getElementById('tab-'+id).classList.add('on');btn.classList.add('on')}
+function prevAv(url){const el=document.getElementById('avCircle');if(url){el.innerHTML='<img src="'+url+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'">'}}
+function chkPw(){const a=document.getElementById('np').value,b=document.getElementById('cp').value,h=document.getElementById('pwh');if(!b){h.textContent='';return}if(a===b){h.textContent='✓ Passwords match';h.style.color='#6dcf9e'}else{h.textContent='✗ Passwords do not match';h.style.color='#f08080'}}
+// Auto-open security tab if a password error was returned
+const p=new URLSearchParams(location.search);
+const err='[[${error}]]';
+if(err&&(err.includes('password')||err.includes('Password'))){sw('security',document.querySelectorAll('.tab')[1])}
+</script>
+<script>(function(){const n=document.querySelector(".cineast-nav");if(!n)return;const f=()=>window.scrollY>40?n.classList.add("scrolled"):n.classList.remove("scrolled");window.addEventListener("scroll",f,{passive:true});f();})();</script>
+</body></html>

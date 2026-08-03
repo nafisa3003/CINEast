@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+                xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CINÉast — Discover Cinema</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/cineast.css">
+<style>
+/* ── Canvas layer ─────────────────────────────────────────────────────────── */
+#gl-bg {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+  width: 100%; height: 100%;
+}
+
+/* ── Hero — full viewport, immersive ─────────────────────────────────────── */
+.hero {
+  position: relative; z-index: 1;
+  height: 100vh; min-height: 600px;
+  display: flex; flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden;
+}
+
+/* Cinematic backdrop — scales up as you scroll */
+.hero-backdrop {
+  position: absolute; inset: -10%;   /* extra 10% on all sides for zoom room */
+  background-size: cover;
+  background-position: center 30%;
+  transform-origin: center center;
+  will-change: transform;
+  transition: none;
+}
+
+/* Multi-layer gradient — deep, cinematic */
+.hero-gradient {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(to top,
+      #0D0E12 0%,
+      rgba(13,14,18,.92) 18%,
+      rgba(13,14,18,.55) 45%,
+      rgba(13,14,18,.1)  72%,
+      transparent       100%),
+    linear-gradient(to right,
+      rgba(13,14,18,.75) 0%,
+      rgba(13,14,18,.2)  40%,
+      transparent        65%),
+    radial-gradient(ellipse at 70% 40%,
+      rgba(229,169,60,.04) 0%,
+      transparent          60%);
+}
+
+/* Noise grain overlay — gives it that film texture */
+.hero-grain {
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  opacity: .35;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative; z-index: 2;
+  padding: 0 52px 72px;
+  max-width: 760px;
+}
+
+/* Animated entrance */
+.hero-content > * {
+  opacity: 0;
+  transform: translateY(28px);
+  animation: heroFadeUp .7s cubic-bezier(.22,1,.36,1) forwards;
+}
+.hero-content > *:nth-child(1) { animation-delay: .1s; }
+.hero-content > *:nth-child(2) { animation-delay: .22s; }
+.hero-content > *:nth-child(3) { animation-delay: .34s; }
+.hero-content > *:nth-child(4) { animation-delay: .44s; }
+.hero-content > *:nth-child(5) { animation-delay: .54s; }
+@keyframes heroFadeUp {
+  to { opacity:1; transform:translateY(0); }
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(229,169,60,.13);
+  border: 1px solid rgba(229,169,60,.38);
+  border-radius: 20px; padding: 5px 16px;
+  font-size: 11px; color: var(--gold);
+  letter-spacing: 2px; font-weight: 700; text-transform: uppercase;
+  margin-bottom: 24px;
+  backdrop-filter: blur(8px);
+}
+
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(52px, 8vw, 96px);
+  letter-spacing: 2px; line-height: .92;
+  margin-bottom: 20px;
+  text-shadow: 0 2px 40px rgba(0,0,0,.7);
+}
+
+.hero-overview {
+  color: rgba(200,205,215,.85);
+  font-size: 15px; line-height: 1.8;
+  margin-bottom: 28px;
+  max-width: 520px;
+  font-weight: 300;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hero-meta {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 36px; flex-wrap: wrap;
+}
+.hero-rating {
+  display: flex; align-items: center; gap: 6px;
+  color: var(--gold); font-weight: 700; font-size: 16px;
+}
+.hero-pill {
+  color: var(--muted); font-size: 12px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 4px 12px; border-radius: 20px;
+}
+
+.hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+
+/* Scroll hint arrow */
+.scroll-hint {
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  color: rgba(158,163,176,.5); font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+  animation: scrollBounce 2.2s ease-in-out infinite;
+}
+.scroll-hint svg { width: 20px; height: 20px; }
+@keyframes scrollBounce {
+  0%,100% { opacity:.4; transform:translateX(-50%) translateY(0); }
+  50%      { opacity:.9; transform:translateX(-50%) translateY(6px); }
+}
+
+/* ── Section rows ─────────────────────────────────────────────────────────── */
+.sections-wrapper {
+  position: relative; z-index: 1;
+  padding-top: 0;
+}
+
+/* Fade-in on scroll for each section */
+.section {
+  padding: 0 52px; margin-bottom: 64px;
+  opacity: 0; transform: translateY(40px);
+  transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+}
+.section.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Genre label strip ───────────────────────────────────────────────────── */
+.section-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 2.5px;
+  display: flex; align-items: center; gap: 10px;
+}
+.section-accent { color: var(--gold); }
+.section-line {
+  flex: 1; height: 1px; margin-left: 16px;
+  background: linear-gradient(to right, rgba(229,169,60,.3), transparent);
+}
+</style>
+</head>
+<body>
+
+<!-- WebGL particle field — lives behind everything -->
+<canvas id="gl-bg"></canvas>
+
+<!-- Navbar -->
+<div th:replace="~{fragments :: navbar}"></div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero" id="hero">
+  <div class="hero-backdrop" id="heroBg"
+       th:if="${not #lists.isEmpty(trendingMovies)}"
+       th:style="'background-image:url(' + ${trendingMovies[0].backdropUrl} + ')'">
+  </div>
+  <div class="hero-gradient"></div>
+  <div class="hero-grain"></div>
+
+  <div class="hero-content" th:if="${not #lists.isEmpty(trendingMovies)}">
+    <div class="hero-badge">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      Trending this week
+    </div>
+
+    <h1 class="hero-title" th:text="${trendingMovies[0].title}">Movie Title</h1>
+
+    <p class="hero-overview" th:text="${trendingMovies[0].overview}">Overview</p>
+
+    <div class="hero-meta">
+      <span class="hero-rating">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+        </svg>
+        <span th:text="${trendingMovies[0].ratingFormatted}">8.4</span>
+      </span>
+      <span class="hero-pill" th:text="${trendingMovies[0].releaseYear}">2024</span>
+      <span class="hero-pill" th:if="${trendingMovies[0].runtime > 0}"
+            th:text="${trendingMovies[0].runtime} + ' min'">120 min</span>
+    </div>
+
+    <div class="hero-btns">
+      <a th:href="@{/movie/{id}(id=${trendingMovies[0].id})}" class="btn-gold">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        View movie
+      </a>
+      <a th:href="@{/movie/{id}(id=${trendingMovies[0].id})}" class="btn-ghost">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        More info
+      </a>
+    </div>
+  </div>
+
+  <!-- Scroll hint -->
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="m6 9 6 6 6-6"/>
+    </svg>
+    scroll
+  </div>
+</section>
+
+<!-- ═══ MOVIE ROWS ═══ -->
+<div class="sections-wrapper">
+
+  <!-- Trending -->
+  <div class="section" th:if="${not #lists.isEmpty(trendingMovies)}">
+    <div class="section-header">
+      <h2 class="section-title">🔥 <span class="section-accent">Trending</span>&nbsp;This Week</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="movie-row">
+      <a th:each="m : ${trendingMovies}"
+         th:href="@{/movie/{id}(id=${m.id})}" class="movie-card">
+        <img th:if="${m.hasPoster()}" th:src="${m.posterUrl}" th:alt="${m.title}" loading="lazy">
+        <div th:unless="${m.hasPoster()}" class="card-no-poster">No image</div>
+        <div class="card-overlay">
+          <div class="card-title" th:text="${m.title}"></div>
+          <div class="card-meta">
+            <span class="card-rating">★ <span th:text="${m.ratingFormatted}"></span></span>
+            <span class="card-year" th:text="${m.releaseYear}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Action -->
+  <div class="section" th:if="${not #lists.isEmpty(actionMovies)}">
+    <div class="section-header">
+      <h2 class="section-title">🎬 <span class="section-accent">Action</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="movie-row">
+      <a th:each="m : ${actionMovies}" th:href="@{/movie/{id}(id=${m.id})}" class="movie-card">
+        <img th:if="${m.hasPoster()}" th:src="${m.posterUrl}" th:alt="${m.title}" loading="lazy">
+        <div th:unless="${m.hasPoster()}" class="card-no-poster">No image</div>
+        <div class="card-overlay">
+          <div class="card-title" th:text="${m.title}"></div>
+          <div class="card-meta">
+            <span class="card-rating">★ <span th:text="${m.ratingFormatted}"></span></span>
+            <span class="card-year" th:text="${m.releaseYear}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Comedy -->
+  <div class="section" th:if="${not #lists.isEmpty(comedyMovies)}">
+    <div class="section-header">
+      <h2 class="section-title">😂 <span class="section-accent">Comedy</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="movie-row">
+      <a th:each="m : ${comedyMovies}" th:href="@{/movie/{id}(id=${m.id})}" class="movie-card">
+        <img th:if="${m.hasPoster()}" th:src="${m.posterUrl}" th:alt="${m.title}" loading="lazy">
+        <div th:unless="${m.hasPoster()}" class="card-no-poster">No image</div>
+        <div class="card-overlay">
+          <div class="card-title" th:text="${m.title}"></div>
+          <div class="card-meta">
+            <span class="card-rating">★ <span th:text="${m.ratingFormatted}"></span></span>
+            <span class="card-year" th:text="${m.releaseYear}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Thriller -->
+  <div class="section" th:if="${not #lists.isEmpty(thrillerMovies)}">
+    <div class="section-header">
+      <h2 class="section-title">😱 <span class="section-accent">Thriller</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="movie-row">
+      <a th:each="m : ${thrillerMovies}" th:href="@{/movie/{id}(id=${m.id})}" class="movie-card">
+        <img th:if="${m.hasPoster()}" th:src="${m.posterUrl}" th:alt="${m.title}" loading="lazy">
+        <div th:unless="${m.hasPoster()}" class="card-no-poster">No image</div>
+        <div class="card-overlay">
+          <div class="card-title" th:text="${m.title}"></div>
+          <div class="card-meta">
+            <span class="card-rating">★ <span th:text="${m.ratingFormatted}"></span></span>
+            <span class="card-year" th:text="${m.releaseYear}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Sci-Fi -->
+  <div class="section" th:if="${not #lists.isEmpty(scifiMovies)}">
+    <div class="section-header">
+      <h2 class="section-title">🚀 <span class="section-accent">Sci-Fi</span></h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="movie-row">
+      <a th:each="m : ${scifiMovies}" th:href="@{/movie/{id}(id=${m.id})}" class="movie-card">
+        <img th:if="${m.hasPoster()}" th:src="${m.posterUrl}" th:alt="${m.title}" loading="lazy">
+        <div th:unless="${m.hasPoster()}" class="card-no-poster">No image</div>
+        <div class="card-overlay">
+          <div class="card-title" th:text="${m.title}"></div>
+          <div class="card-meta">
+            <span class="card-rating">★ <span th:text="${m.ratingFormatted}"></span></span>
+            <span class="card-year" th:text="${m.releaseYear}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</div><!-- /sections-wrapper -->
+
+<div th:replace="~{fragments :: footer}"></div>
+<div th:replace="~{fragments :: navscript}"></div>
+
+<!-- Three.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ════════════════════════════════════════════════════════════════
+   THREE.JS — Volumetric particle theatre
+════════════════════════════════════════════════════════════════ */
+(function () {
+  const canvas   = document.getElementById('gl-bg');
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setClearColor(0x000000, 0);
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 1000);
+  camera.position.set(0, 0, 6);
+
+  /* ── Particle geometry ── */
+  const TOTAL = 400;
+  const positions = new Float32Array(TOTAL * 3);
+  const colors    = new Float32Array(TOTAL * 3);
+  const sizes     = new Float32Array(TOTAL);
+  const speeds    = new Float32Array(TOTAL);
+
+  for (let i = 0; i < TOTAL; i++) {
+    // Place in a deep 3D space — sphere distribution
+    const theta = Math.random() * Math.PI * 2;
+    const phi   = Math.acos(2 * Math.random() - 1);
+    const r     = 4 + Math.random() * 14;
+    positions[i*3]   = r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    positions[i*3+2] = (Math.random() - .5) * 10;
+
+    // Gold or dim white
+    if (Math.random() > .72) {
+      colors[i*3] = 229/255; colors[i*3+1] = 169/255; colors[i*3+2] = 60/255;
+    } else {
+      const v = .05 + Math.random() * .18;
+      colors[i*3] = colors[i*3+1] = colors[i*3+2] = v;
+    }
+
+    sizes[i]  = Math.random() * 3.2 + .4;
+    speeds[i] = .3 + Math.random() * .7;
+  }
+
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(colors,    3));
+  geo.setAttribute('size',     new THREE.BufferAttribute(sizes,     1));
+  geo.setAttribute('speed',    new THREE.BufferAttribute(speeds,    1));
+
+  const mat = new THREE.ShaderMaterial({
+    uniforms: {
+      uTime:   { value: 0 },
+      uScroll: { value: 0 },
+    },
+    vertexShader: `
+      attribute float size;
+      attribute float speed;
+      attribute vec3  color;
+      varying   vec3  vColor;
+      varying   float vAlpha;
+      uniform   float uTime;
+      uniform   float uScroll;
+
+      void main() {
+        vColor = color;
+
+        vec3 p = position;
+        // Gentle sine drift in all 3 axes
+        p.x += sin(uTime * speed * .28 + position.y * .4) * .18;
+        p.y += cos(uTime * speed * .22 + position.x * .3) * .14;
+        p.z += sin(uTime * speed * .18 + position.z * .5) * .1;
+
+        // Scroll pushes particles away (zoom-in feel)
+        p.z -= uScroll * 3.5;
+
+        // Twinkle
+        vAlpha = .12 + .55 * abs(sin(uTime * speed * .5 + position.z * 1.8));
+
+        vec4 mv = modelViewMatrix * vec4(p, 1.0);
+        float dist = -mv.z;
+        gl_PointSize = size * (380.0 / max(dist, 0.1));
+        gl_Position  = projectionMatrix * mv;
+      }
+    `,
+    fragmentShader: `
+      varying vec3  vColor;
+      varying float vAlpha;
+
+      void main() {
+        vec2  uv = gl_PointCoord - 0.5;
+        float d  = length(uv);
+        if (d > 0.5) discard;
+
+        // Soft gaussian core
+        float a = exp(-d * d * 8.0) * vAlpha;
+        gl_FragColor = vec4(vColor, a);
+      }
+    `,
+    transparent: true,
+    depthWrite:  false,
+    vertexColors: true,
+  });
+
+  const points = new THREE.Points(geo, mat);
+  scene.add(points);
+
+  /* ── Resize handler ── */
+  function onResize() {
+    const W = innerWidth, H = innerHeight;
+    renderer.setSize(W, H);
+    camera.aspect = W / H;
+    camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize', onResize);
+  onResize();
+
+  /* ── Mouse parallax ── */
+  let targetMX = 0, targetMY = 0, curMX = 0, curMY = 0;
+  window.addEventListener('mousemove', e => {
+    targetMX = (e.clientX / innerWidth  - .5) * 2;
+    targetMY = (e.clientY / innerHeight - .5) * 2;
+  });
+
+  /* ── Scroll state ── */
+  let scrollProgress = 0;
+  window.addEventListener('scroll', () => {
+    scrollProgress = Math.min(window.scrollY / innerHeight, 1);
+  });
+
+  /* ── Animate ── */
+  let t = 0;
+  function animate() {
+    requestAnimationFrame(animate);
+    t += .007;
+
+    // Smooth mouse lag
+    curMX += (targetMX - curMX) * .04;
+    curMY += (targetMY - curMY) * .04;
+
+    mat.uniforms.uTime.value   = t;
+    mat.uniforms.uScroll.value = scrollProgress;
+
+    // Slow rotation of the whole field
+    points.rotation.y = t * .018 + curMX * .08;
+    points.rotation.x = curMY * .05;
+
+    // Camera drift — drift forward as user scrolls
+    camera.position.z = 6 - scrollProgress * 2.5;
+    camera.position.x += (curMX * .4 - camera.position.x) * .03;
+    camera.position.y += (-curMY * .3 - camera.position.y) * .03;
+
+    renderer.render(scene, camera);
+  }
+  animate();
+})();
+
+/* ════════════════════════════════════════════════════════════════
+   HERO BACKDROP — parallax + zoom on scroll
+════════════════════════════════════════════════════════════════ */
+(function () {
+  const bg   = document.getElementById('heroBg');
+  const hero = document.getElementById('hero');
+  if (!bg || !hero) return;
+
+  let ticking = false;
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        const heroH   = hero.offsetHeight;
+        const progress = Math.min(scrollY / heroH, 1);
+
+        // Parallax: move up slowly
+        const translateY = scrollY * 0.3;
+
+        // Zoom: scale from 1.0 → 1.18 as you scroll through hero
+        const scale = 1 + progress * 0.18;
+
+        bg.style.transform = `translateY(${translateY}px) scale(${scale})`;
+
+        ticking = false;
+      });
+      ticking = true;
+    }
+  });
+})();
+
+/* ════════════════════════════════════════════════════════════════
+   NAVBAR — transparent at top, frosted when scrolled
+════════════════════════════════════════════════════════════════ */
+(function () {
+  const nav = document.querySelector('.cineast-nav');
+  if (!nav) return;
+  const onScroll = () => {
+    if (window.scrollY > 60) nav.classList.add('scrolled');
+    else                     nav.classList.remove('scrolled');
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+
+/* ════════════════════════════════════════════════════════════════
+   SECTION REVEAL — fade up on scroll
+════════════════════════════════════════════════════════════════ */
+(function () {
+  const sections = document.querySelectorAll('.section');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+  sections.forEach(s => io.observe(s));
+})();
+</script>
+</body>
+</html>
